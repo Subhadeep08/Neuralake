@@ -56,10 +56,13 @@ async def set_tenant_context(session: AsyncSession, tenant_id: str) -> None:
 
 
 async def init_db() -> None:
+    from sqlalchemy import text
+
     from neuralake.storage.models.base import Base
 
     engine = get_engine()
     async with engine.begin() as conn:
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         await conn.run_sync(Base.metadata.create_all)
 
 
