@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from neuralake.api.schemas.common import PaginatedResponse
 
@@ -14,12 +14,13 @@ class CollectionResponse(BaseModel):
     chunking_strategy: str
     chunk_size: int
     chunk_overlap: int
-    metadata: dict | None
+    metadata: dict | None = Field(validation_alias="metadata_")
     created_at: datetime
     updated_at: datetime
 
     class Config:
         from_attributes = True
+        populate_by_name = True
 
 
 class CollectionListResponse(PaginatedResponse):
@@ -37,11 +38,12 @@ class DocumentResponse(BaseModel):
     chunk_count: int
     status: str
     error_message: str | None
-    metadata: dict | None
+    metadata: dict | None = Field(validation_alias="metadata_")
     created_at: datetime
 
     class Config:
         from_attributes = True
+        populate_by_name = True
 
 
 class DocumentListResponse(PaginatedResponse):
@@ -54,10 +56,11 @@ class ChunkResponse(BaseModel):
     chunk_index: int
     token_count: int
     score: float | None = None
-    metadata: dict | None
+    metadata: dict | None = Field(validation_alias="metadata_")
 
     class Config:
         from_attributes = True
+        populate_by_name = True
 
 
 class MemoryResponse(BaseModel):
@@ -75,11 +78,12 @@ class MemoryResponse(BaseModel):
     last_accessed: datetime | None
     consolidated: bool
     steps: list[dict] | None
-    metadata: dict | None
+    metadata: dict | None = Field(validation_alias="metadata_")
     created_at: datetime
 
     class Config:
         from_attributes = True
+        populate_by_name = True
 
 
 class MemoryListResponse(PaginatedResponse):
