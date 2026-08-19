@@ -69,7 +69,7 @@ class RetrievalPipeline:
                         chunk_index=chunk.chunk_index,
                         token_count=chunk.token_count,
                         score=rrf_score,
-                        metadata=chunk.metadata,
+                        metadata=chunk.metadata_,
                     )
                 )
 
