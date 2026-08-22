@@ -5,6 +5,7 @@ import hashlib
 import secrets
 
 from neuralake.config.settings import get_settings
+from neuralake.core.auth.password import hash_password
 from neuralake.storage.database import get_session_factory, init_db
 from neuralake.storage.models.tenant import APIKey, Tenant, User
 
@@ -24,12 +25,11 @@ async def seed():
         db.add(tenant)
         await db.flush()
 
-        password_hash = hashlib.sha256("admin123".encode()).hexdigest()
         user = User(
             tenant_id=tenant.id,
             email="admin@neuralake.dev",
             name="Admin",
-            password_hash=password_hash,
+            password_hash=hash_password("admin123"),
             role="admin",
         )
         db.add(user)

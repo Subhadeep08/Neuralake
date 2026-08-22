@@ -1,13 +1,13 @@
-import hashlib
 import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from neuralake.api.middleware.auth import AuthContext, create_jwt, get_auth_context
+from neuralake.core.auth.password import hash_password, needs_rehash, verify_password
 from neuralake.api.schemas.requests import (
     CreateAPIKeyRequest,
     CreateTenantRequest,
@@ -30,8 +30,17 @@ router = APIRouter(prefix="/tenants", tags=["tenants"])
 @router.post("", response_model=TenantResponse, status_code=201)
 async def create_tenant(
     body: CreateTenantRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
+    settings = get_settings()
+    has_tenants = (await db.execute(select(Tenant).limit(1))).scalar_one_or_none()
+
+    if has_tenants:
+        token = request.headers.get("X-Bootstrap-Token")
+        if not settings.auth.bootstrap_token or token != settings.auth.bootstrap_token:
+            raise HTTPException(status_code=403, detail="Bootstrap token required")
+
     tenant = Tenant(
         name=body.name,
         slug=body.slug,
@@ -49,12 +58,11 @@ async def create_user(
     body: CreateUserRequest,
     db: AsyncSession = Depends(get_db),
 ):
-    password_hash = hashlib.sha256(body.password.encode()).hexdigest()
     user = User(
         tenant_id=tenant_id,
         email=body.email,
         name=body.name,
-        password_hash=password_hash,
+        password_hash=hash_password(body.password),
         role=body.role,
     )
     db.add(user)
@@ -67,16 +75,14 @@ async def login(
     body: LoginRequest,
     db: AsyncSession = Depends(get_db),
 ):
-    password_hash = hashlib.sha256(body.password.encode()).hexdigest()
-    result = await db.execute(
-        select(User).where(
-            User.email == body.email,
-            User.password_hash == password_hash,
-        )
-    )
+    result = await db.execute(select(User).where(User.email == body.email))
     user = result.scalar_one_or_none()
-    if not user:
+    if not user or not verify_password(body.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if needs_rehash(user.password_hash):
+        user.password_hash = hash_password(body.password)
+        await db.flush()
 
     token = create_jwt(user.id, user.tenant_id, user.role)
     return TokenResponse(access_token=token)
@@ -90,6 +96,8 @@ async def create_api_key(
 ):
     settings = get_settings()
     raw_key = settings.auth.api_key_prefix + secrets.token_urlsafe(32)
+    import hashlib
+
     key_hash = hashlib.sha256(raw_key.encode()).hexdigest()
 
     expires_at = None

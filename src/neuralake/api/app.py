@@ -8,10 +8,23 @@ from neuralake.config.settings import get_settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    import logging
+
     from neuralake.storage.database import init_db, close_db
+    from neuralake.workers.scheduler import start_scheduler, stop_scheduler
+
+    settings = get_settings()
+    if settings.environment != "development" and settings.auth.jwt_secret == "CHANGE-ME-IN-PRODUCTION":
+        logging.getLogger("neuralake").critical(
+            "JWT secret is still the default — set NEURALAKE_AUTH__JWT_SECRET before running in %s",
+            settings.environment,
+        )
+        raise SystemExit(1)
 
     await init_db()
+    await start_scheduler()
     yield
+    await stop_scheduler()
     await close_db()
 
 
@@ -34,8 +47,13 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    from neuralake.api.middleware.logging import RequestLoggingMiddleware
+    from neuralake.api.middleware.logging import RequestLoggingMiddleware, configure_logging
     from neuralake.api.middleware.rate_limit import RateLimitMiddleware
+
+    configure_logging(
+        log_level=settings.log_level,
+        json_format=settings.environment != "development",
+    )
 
     app.add_middleware(RequestLoggingMiddleware)
     app.add_middleware(RateLimitMiddleware)
