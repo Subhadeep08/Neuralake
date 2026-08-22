@@ -11,13 +11,18 @@ class GraphEntityRepository(BaseRepository[GraphEntity]):
     def __init__(self, session: AsyncSession):
         super().__init__(GraphEntity, session)
 
+    @staticmethod
+    def _escape_like(value: str) -> str:
+        return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
     async def find_by_name(
         self, name: str, tenant_id: uuid.UUID, entity_type: str | None = None
     ) -> GraphEntity | None:
+        escaped = self._escape_like(name)
         query = select(GraphEntity).where(
             and_(
                 GraphEntity.tenant_id == tenant_id,
-                GraphEntity.name.ilike(f"%{name}%"),
+                GraphEntity.name.ilike(f"%{escaped}%"),
             )
         )
         if entity_type:
@@ -34,9 +39,16 @@ class GraphEntityRepository(BaseRepository[GraphEntity]):
         limit: int = 50,
     ) -> list[dict]:
         relation_filter = ""
+        params: dict = {
+            "entity_id": str(entity_id),
+            "tenant_id": str(tenant_id),
+            "max_depth": max_depth,
+            "limit": limit,
+        }
+
         if relation_types:
-            types_str = ",".join(f"'{t}'" for t in relation_types)
-            relation_filter = f"AND e.relation_type IN ({types_str})"
+            relation_filter = "AND e.relation_type = ANY(:relation_types)"
+            params["relation_types"] = relation_types
 
         query = text(f"""
             WITH RECURSIVE graph_traverse AS (
@@ -81,15 +93,7 @@ class GraphEntityRepository(BaseRepository[GraphEntity]):
             LIMIT :limit
         """)
 
-        result = await self.session.execute(
-            query,
-            {
-                "entity_id": str(entity_id),
-                "tenant_id": str(tenant_id),
-                "max_depth": max_depth,
-                "limit": limit,
-            },
-        )
+        result = await self.session.execute(query, params)
 
         return [
             {

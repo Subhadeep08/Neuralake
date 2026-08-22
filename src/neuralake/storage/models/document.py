@@ -38,6 +38,7 @@ class Chunk(TenantBase):
         UUID(as_uuid=True), ForeignKey("collections.id", ondelete="CASCADE"), nullable=False
     )
     content: Mapped[str] = mapped_column(Text, nullable=False)
+    context_prefix: Mapped[str | None] = mapped_column(Text)
     chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
     token_count: Mapped[int | None] = mapped_column(Integer)
     embedding = mapped_column(Vector(1536))

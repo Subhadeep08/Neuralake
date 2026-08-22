@@ -24,12 +24,20 @@ class Memory(TenantBase):
     embedding = mapped_column(Vector(1536))
     metadata_: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
 
+    # Bitemporal fields
+    event_time: Mapped[str | None] = mapped_column(DateTime(timezone=True))
+    recorded_at: Mapped[str | None] = mapped_column(DateTime(timezone=True))
     valid_from: Mapped[str | None] = mapped_column(DateTime(timezone=True))
     valid_until: Mapped[str | None] = mapped_column(DateTime(timezone=True))
 
     access_count: Mapped[int] = mapped_column(Integer, default=0)
     last_accessed: Mapped[str | None] = mapped_column(DateTime(timezone=True))
     decay_rate: Mapped[float] = mapped_column(Float, default=0.01)
+
+    # Weibull decay parameters
+    weibull_scale: Mapped[float] = mapped_column(Float, default=168.0)
+    weibull_shape: Mapped[float] = mapped_column(Float, default=0.7)
+
     consolidated: Mapped[bool] = mapped_column(Boolean, default=False)
     superseded_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("memories.id")
@@ -43,6 +51,7 @@ class Memory(TenantBase):
         Index("idx_memories_type", "tenant_id", "memory_type"),
         Index("idx_memories_category", "tenant_id", "category"),
         Index("idx_memories_temporal", "tenant_id", "valid_from", "valid_until"),
+        Index("idx_memories_event_time", "tenant_id", "event_time"),
     )
 
 
