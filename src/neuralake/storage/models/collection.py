@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, Integer, String
+from sqlalchemy import Boolean, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -17,6 +17,7 @@ class Collection(TenantBase):
     chunking_strategy: Mapped[str] = mapped_column(String(50), default="recursive")
     chunk_size: Mapped[int] = mapped_column(Integer, default=512)
     chunk_overlap: Mapped[int] = mapped_column(Integer, default=64)
+    contextual_retrieval: Mapped[bool] = mapped_column(Boolean, default=False)
     metadata_: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
 
     documents: Mapped[list["Document"]] = relationship(

@@ -14,15 +14,19 @@ def get_embedder() -> BaseEmbedder:
 
     if provider == "openai":
         from neuralake.core.embeddings.openai_embedder import OpenAIEmbedder
+
         _embedder = OpenAIEmbedder()
     elif provider == "cohere":
-        from neuralake.core.embeddings.openai_embedder import OpenAIEmbedder
-        _embedder = OpenAIEmbedder()
+        from neuralake.core.embeddings.cohere_embedder import CohereEmbedder
+
+        _embedder = CohereEmbedder()
+    elif provider == "local":
+        from neuralake.core.embeddings.local_embedder import LocalEmbedder
+
+        _embedder = LocalEmbedder()
     else:
         from neuralake.core.embeddings.openai_embedder import OpenAIEmbedder
-        _embedder = OpenAIEmbedder(
-            model=settings.embedding.local_model_name,
-            api_key="local",
-        )
+
+        _embedder = OpenAIEmbedder()
 
     return _embedder

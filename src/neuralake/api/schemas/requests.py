@@ -12,6 +12,7 @@ class CreateCollectionRequest(BaseModel):
     chunking_strategy: str = "recursive"
     chunk_size: int = Field(default=512, ge=64, le=2048)
     chunk_overlap: int = Field(default=64, ge=0, le=512)
+    contextual_retrieval: bool = False
     metadata: dict | None = None
 
 

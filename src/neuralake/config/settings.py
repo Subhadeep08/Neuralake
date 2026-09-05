@@ -78,6 +78,7 @@ class AuthSettings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expiry_hours: int = 24
     api_key_prefix: str = "nl_sk_"
+    bootstrap_token: str | None = None
 
 
 class MCPSettings(BaseSettings):

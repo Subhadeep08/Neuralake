@@ -48,21 +48,22 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def set_tenant_context(session: AsyncSession, tenant_id: str) -> None:
+    import uuid as _uuid
+
+    from sqlalchemy import text
+
+    validated = str(_uuid.UUID(tenant_id))
     await session.execute(
-        __import__("sqlalchemy").text(
-            f"SET LOCAL app.current_tenant_id = '{tenant_id}'"
-        )
+        text("SET LOCAL app.current_tenant_id = :tid"),
+        {"tid": validated},
     )
 
 
 async def init_db() -> None:
-    from sqlalchemy import text
-
     from neuralake.storage.models.base import Base
 
     engine = get_engine()
     async with engine.begin() as conn:
-        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         await conn.run_sync(Base.metadata.create_all)
 
 
