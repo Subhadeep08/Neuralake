@@ -13,7 +13,11 @@ def get_llm(model_override: str | None = None) -> BaseLLM:
     settings = get_settings()
     provider = settings.llm.provider
 
-    if provider == "anthropic":
+    llm: BaseLLM
+    if provider == "gemini":
+        from neuralake.core.llm.gemini import GeminiLLM
+        llm = GeminiLLM(model=model_override)
+    elif provider == "anthropic":
         from neuralake.core.llm.anthropic import AnthropicLLM
         llm = AnthropicLLM(model=model_override)
     elif provider == "openai":

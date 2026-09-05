@@ -43,7 +43,7 @@ GET  /api/v1/graph/entities            # Explore knowledge graph
 
 ## Architecture
 
-PostgreSQL-first design: single database for relational data, vector embeddings (pgvector), full-text search (tsvector), and graph storage (recursive CTEs). Claude (Anthropic) as primary LLM with OpenAI/Ollama alternatives.
+PostgreSQL-first design: single database for relational data, vector embeddings (pgvector), full-text search (tsvector), and graph storage (recursive CTEs). Google Gemini as primary LLM & embeddings provider with Claude (Anthropic), OpenAI, and Ollama alternatives.
 
 ## License
 

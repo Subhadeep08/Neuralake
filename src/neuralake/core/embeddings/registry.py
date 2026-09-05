@@ -12,7 +12,10 @@ def get_embedder() -> BaseEmbedder:
     settings = get_settings()
     provider = settings.embedding.provider
 
-    if provider == "openai":
+    if provider == "gemini":
+        from neuralake.core.embeddings.gemini_embedder import GeminiEmbedder
+        _embedder = GeminiEmbedder()
+    elif provider == "openai":
         from neuralake.core.embeddings.openai_embedder import OpenAIEmbedder
         _embedder = OpenAIEmbedder()
     elif provider == "cohere":

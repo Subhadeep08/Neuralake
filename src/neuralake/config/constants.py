@@ -1,4 +1,7 @@
 EMBEDDING_DIMENSIONS = {
+    "gemini-embedding-001": 1536,
+    "gemini-embedding-2": 1536,
+    "text-embedding-004": 768,
     "text-embedding-3-small": 1536,
     "text-embedding-3-large": 3072,
     "text-embedding-ada-002": 1536,
