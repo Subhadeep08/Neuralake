@@ -29,10 +29,11 @@ class RedisSettings(BaseSettings):
 
 class EmbeddingSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="NEURALAKE_EMBEDDING__")
-    provider: Literal["openai", "cohere", "local"] = "openai"
-    model: str = "text-embedding-3-small"
+    provider: Literal["gemini", "openai", "cohere", "local"] = "gemini"
+    model: str = "gemini-embedding-001"
     dimensions: int = 1536
     batch_size: int = 100
+    gemini_api_key: str | None = None
     openai_api_key: str | None = None
     cohere_api_key: str | None = None
     local_model_name: str = "BAAI/bge-m3"
@@ -40,12 +41,13 @@ class EmbeddingSettings(BaseSettings):
 
 class LLMSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="NEURALAKE_LLM__")
-    provider: Literal["anthropic", "openai", "local"] = "anthropic"
+    provider: Literal["anthropic", "gemini", "openai", "local"] = "anthropic"
     model: str = "claude-sonnet-4-20250514"
     extraction_model: str = "claude-haiku-4-5-20251001"
     temperature: float = 0.1
     max_tokens: int = 4096
     anthropic_api_key: str | None = None
+    gemini_api_key: str | None = None
     openai_api_key: str | None = None
     local_base_url: str = "http://localhost:11434"
 
